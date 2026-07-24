@@ -29,6 +29,10 @@ pipeline {
             }
         }
 
+        stage('test - results') {
+          junit '**/reports/**/*.xml'
+        }
+
         stage('deploy') {
             steps {
                 s3Upload consoleLogLevel: 'INFO', 
