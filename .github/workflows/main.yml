@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
   
 permissions:
   checks: write
@@ -36,3 +40,5 @@ jobs:
       with:
         files: |
           **/reports/**/*.xml
+    - name: echo version
+      run: echo "${version}"
