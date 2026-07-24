@@ -40,7 +40,6 @@ jobs:
       with:
         files: |
           **/reports/**/*.xml
-jobs:
   tag:
     runs-on: ubuntu-latest
     steps:
