@@ -29,10 +29,6 @@ pipeline {
             }
         }
 
-        stage('test - results') {
-          junit '**/reports/**/*.xml'
-        }
-
         stage('deploy') {
             steps {
                 s3Upload consoleLogLevel: 'INFO', 
@@ -57,6 +53,12 @@ pipeline {
                     profileName: 'role-based-access', 
                     userMetadata: []
             }
+        }
+    }
+
+    post {
+        always {
+            junit '**/reports/**/*.xml'
         }
     }
 }
