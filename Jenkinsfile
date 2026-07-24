@@ -1,64 +1,51 @@
 pipeline {
-    agent any
-    tools {
-        nodejs 'yarn'
-    }
+  agent any
+  parameters {
+      string(name: 'Version', defaultValue: '1.0.0', description: 'Please provide version number.')
+  }
+  tools {
+      nodejs 'yarn'
+  }
 
-    stages {
-        stage('install') {
-            steps {
-                sh 'yarn'
-            }
+  stages {
+      stage('checkout') {
+          steps {
+            git branch: 'master', url: 'https://github.com/cjhappTNG/ciCdPlayground'
+      script {
+          currentBuild.displayName = 'displayName'
+          currentBuild.description = "${params.Version}"
+              }
+          }
+      }
+      stage('install') {
+        steps {
+            sh 'yarn'
         }
-
-        stage('test - unit') {
-            steps {
+      }
+      stage('unit-test') {
+          steps {
                 sh 'yarn test'
-            }
-        }
-
-        stage('build') {
-            steps {
-                sh 'yarn build'
-            }
-        }
-
-        stage('test - e2e') {
-            steps {
-                sh 'yarn test:e2e'
-            }
-        }
-
-        stage('deploy') {
-            steps {
-                s3Upload consoleLogLevel: 'INFO', 
-                  dontSetBuildResultOnFailure: false, 
-                  dontWaitForConcurrentBuildCompletion: false, 
-                  entries: [[
-                      bucket: "cicd-workshop-playground/${env.GIT_URL.split('/')[3]}", 
-                      excludedFile: '', 
-                      flatten: false, 
-                      gzipFiles: false, 
-                      keepForever: false, 
-                      managedArtifacts: false, 
-                      noUploadOnFailure: false, 
-                      selectedRegion: 'eu-central-1', 
-                      showDirectlyInBrowser: false, 
-                      sourceFile: 'public/**/*.*', 
-                      storageClass: 'STANDARD', 
-                      uploadFromSlave: false, 
-                      useServerSideEncryption: false
-                    ]], 
-                    pluginFailureResultConstraint: 'FAILURE', 
-                    profileName: 'role-based-access', 
-                    userMetadata: []
-            }
-        }
-    }
-
-    post {
-        always {
-            junit '**/reports/**/*.xml'
-        }
-    }
+          }
+          post {
+              always {
+                  junit 'reports/jest-junit.xml'
+              }
+          }
+      }
+      stage('build') {
+          steps {
+              sh 'yarn build'
+          }
+      }
+      stage('integration-test') {
+          steps {
+              sh 'yarn test:e2e'
+          }
+          post {
+              always {
+                  junit 'reports/cypress-junit.xml'
+              }
+          }
+      }
+  }
 }
